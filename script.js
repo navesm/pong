@@ -167,9 +167,9 @@ function ballBoundaries() {
 function computerAI() {
   if (playerMoved) {
     if (paddleTopX + paddleDiff < ballX) {
-      paddleTopX += computerSpeed - .25;
+      paddleTopX += computerSpeed;
     } else {
-      paddleTopX -= computerSpeed - .25;
+      paddleTopX -= computerSpeed;
     }
   }
 }
