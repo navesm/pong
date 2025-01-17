@@ -6,6 +6,25 @@ body {
   font-family: "Courier New", Courier, monospace;
 }
 
+h1,
+h2 {
+  color: white;
+}
+
+.start-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.button-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
 canvas {
   margin-top: 25px;
   z-index: 10;
