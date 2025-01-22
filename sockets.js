@@ -140,7 +140,7 @@ function listen(io) {
             console.log('Frame took too long:', frameTime);
 
           }
-        }, 1000 / 150)
+        }, 1000 / 60)
         // setInterval(() => gameLoop(pongNameSpace, room), 1000 / FRAME_RATE);
 
         pongNameSpace.in(room).emit('startGame', socket.id);
