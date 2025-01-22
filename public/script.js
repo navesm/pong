@@ -4,8 +4,7 @@ const canvas = document.createElement('canvas');
 const context = canvas.getContext('2d');
 const socket = io('/pong');
 let isMultiplayer = false;
-let isReferee = false;
-let paddleIndex = 0;
+let paddleIndex;
 
 
 
@@ -179,11 +178,14 @@ function ballReset() {
   ballY = height / 2;
   speedY = -3;
   paddleContact = false;
-  socket.emit('ballMove', {
-    ballX,
-    ballY,
-    score,
-  });
+
+  if (!isMultiplayer) {
+    socket.emit('ballMove', {
+      ballX,
+      ballY,
+      score,
+    });
+  }
 }
 
 // Adjust Ball Movement
@@ -356,15 +358,13 @@ function gameOver() {
 
 // Called Every Frame
 function animate() {
-  if (isMultiplayer && isReferee) {
+  if (!isMultiplayer) {
     ballMove();
     ballBoundaries();
-  } else if (!isMultiplayer) {
-    ballMove();
-    ballBoundaries();
+    computerAI();
   }
   renderCanvas();
-  computerAI();
+
   gameOver();
   if (!isGameOver) {
     window.requestAnimationFrame(animate);
@@ -388,7 +388,11 @@ function loadGame() {
 
     socket.on('connect', () => {
       console.log('Connected as...', socket.id);
+    });
 
+    socket.on('playerAssigned', (index) => {
+      paddleIndex = index;
+      console.log('Assigned as player ', paddleIndex);
     })
 
     socket.on('playerCount', (count) => {
@@ -400,8 +404,7 @@ function loadGame() {
 
     //Listen for when the game is ready to start
     socket.on('startGame', (refereeId) => {
-      console.log('Referee is', refereeId);
-      isReferee = socket.id === refereeId;
+      console.log('Game starting... ');
       startGame();
     });
 
@@ -411,10 +414,14 @@ function loadGame() {
       paddleX[opponentPaddleIndex] = paddleData.xPosition;
     });
 
-    socket.on('ballMove', (ballData) => {
-      ({ ballX, ballY, score } = ballData);
-    })
-
+    // Replace individual ball/score updates with complete game state
+    socket.on('gameState', (gameState) => {
+      ballX = gameState.ballX;
+      ballY = gameState.ballY;
+      score = gameState.score;
+      // Only update opponent paddle position
+      paddleX[1 - paddleIndex] = gameState.paddleX[1 - paddleIndex];
+    });
   } else {
     startGame(); // Directly start the single-player game
   }
@@ -433,8 +440,6 @@ function startGame() {
   // Ensure single-player paddle is always bottom
   if (!isMultiplayer) {
     paddleIndex = 0;
-  } else {
-    paddleIndex = isReferee ? 0 : 1;
   }
 
   isGameOver = false;
